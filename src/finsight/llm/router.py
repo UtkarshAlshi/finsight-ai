@@ -1,4 +1,8 @@
-"""Tiered LLM router: cheap model for low-complexity, premium for synthesis."""
+"""Tiered LLM router: cheap model for low-complexity, premium for synthesis.
+
+OpenAI is the primary provider. Anthropic is an optional fallback, used only
+when ANTHROPIC_API_KEY is set and the caller explicitly requests it.
+"""
 
 from __future__ import annotations
 
@@ -25,38 +29,67 @@ _AnyClient = AnthropicClient | OpenAIClient
 
 
 class LLMRouter:
-    """Routes LLM calls to cheap or premium model based on TaskComplexity."""
+    """Routes LLM calls to cheap or premium model based on TaskComplexity.
+
+    Primary provider is always OpenAI. Anthropic clients are created only when
+    ANTHROPIC_API_KEY is set; requests for Anthropic without a key fall back to
+    the OpenAI client with a warning.
+    """
 
     def __init__(self, settings: Settings) -> None:
-        anthropic_key = settings.anthropic_api_key.get_secret_value()
         openai_key = settings.openai_api_key.get_secret_value()
 
-        self._cheap: _AnyClient = AnthropicClient(
-            api_key=anthropic_key,
+        self._cheap: _AnyClient = OpenAIClient(
+            api_key=openai_key,
             model=settings.llm_cheap_model,
         )
-        self._premium: _AnyClient = AnthropicClient(
-            api_key=anthropic_key,
+        self._premium: _AnyClient = OpenAIClient(
+            api_key=openai_key,
             model=settings.llm_premium_model,
         )
-        self._openai_fallback: _AnyClient = OpenAIClient(
-            api_key=openai_key,
-            model=settings.llm_openai_model,
-        )
+
+        # Anthropic clients — instantiated only when key is present
+        self._anthropic_cheap: _AnyClient | None = None
+        self._anthropic_premium: _AnyClient | None = None
+        if settings.anthropic_api_key is not None:
+            anthropic_key = settings.anthropic_api_key.get_secret_value()
+            self._anthropic_cheap = AnthropicClient(
+                api_key=anthropic_key,
+                model=settings.llm_anthropic_cheap_model,
+            )
+            self._anthropic_premium = AnthropicClient(
+                api_key=anthropic_key,
+                model=settings.llm_anthropic_premium_model,
+            )
 
     def get_client(
         self,
         complexity: TaskComplexity,
         *,
-        use_openai: bool = False,
+        use_anthropic: bool = False,
     ) -> _AnyClient:
-        """Return the appropriate LLM client for the given task complexity."""
-        if use_openai:
-            client: _AnyClient = self._openai_fallback
-        elif complexity == TaskComplexity.LOW:
-            client = self._cheap
+        """Return the appropriate LLM client for the given task complexity.
+
+        When use_anthropic=True and ANTHROPIC_API_KEY is set, returns the
+        Anthropic client. Otherwise returns the primary OpenAI client and logs
+        a warning if Anthropic was requested but unavailable.
+        """
+        if use_anthropic:
+            anthropic = (
+                self._anthropic_cheap
+                if complexity == TaskComplexity.LOW
+                else self._anthropic_premium
+            )
+            if anthropic is not None:
+                client: _AnyClient = anthropic
+            else:
+                logger.warning(
+                    "llm.anthropic_unavailable",
+                    reason="ANTHROPIC_API_KEY not set — falling back to OpenAI",
+                )
+                client = self._cheap if complexity == TaskComplexity.LOW else self._premium
         else:
-            client = self._premium
+            client = self._cheap if complexity == TaskComplexity.LOW else self._premium
 
         llm_requests_total.labels(
             provider=client.provider,

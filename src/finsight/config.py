@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, RedisDsn, SecretStr
+from pydantic import Field, RedisDsn, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -23,11 +23,13 @@ class Settings(BaseSettings):
     secret_key: SecretStr = Field(default=SecretStr("change-me-in-production"))
 
     # ── LLM ───────────────────────────────────────────────────
-    anthropic_api_key: SecretStr = Field(default=SecretStr(""))
+    # OpenAI is primary; Anthropic is optional fallback.
+    anthropic_api_key: SecretStr | None = None
     openai_api_key: SecretStr = Field(default=SecretStr(""))
-    llm_cheap_model: str = "claude-haiku-4-5-20251001"
-    llm_premium_model: str = "claude-sonnet-4-6"
-    llm_openai_model: str = "gpt-4o-mini"
+    llm_cheap_model: str = "gpt-4o-mini"
+    llm_premium_model: str = "gpt-4o"
+    llm_anthropic_cheap_model: str = "claude-haiku-4-5-20251001"
+    llm_anthropic_premium_model: str = "claude-sonnet-4-6"
 
     # ── Database ──────────────────────────────────────────────
     postgres_dsn: str = "postgresql+asyncpg://finsight:finsight@localhost:5432/finsight"
@@ -71,6 +73,14 @@ class Settings(BaseSettings):
     # ── Rate Limiting ─────────────────────────────────────────
     rate_limit_requests: int = 60
     rate_limit_window_seconds: int = 60
+
+    @field_validator("anthropic_api_key", mode="before")
+    @classmethod
+    def _empty_str_to_none(cls, v: object) -> object:
+        """Treat an empty or whitespace-only ANTHROPIC_API_KEY as absent (None)."""
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
 
     @property
     def ticker_list(self) -> list[str]:
