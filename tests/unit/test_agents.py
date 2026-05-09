@@ -88,11 +88,11 @@ def test_should_loop_returns_end_on_pass() -> None:
     assert _should_loop(state) == "end"
 
 
-def test_should_loop_returns_research_on_fail() -> None:
+def test_should_loop_returns_synthesise_on_fail() -> None:
     from finsight.agents.graph import _should_loop
 
     state = GraphState(question="q", validation_result="fail", critic_iterations=1)
-    assert _should_loop(state) == "research"
+    assert _should_loop(state) == "synthesise"
 
 
 def test_should_loop_returns_end_at_max_iterations() -> None:
