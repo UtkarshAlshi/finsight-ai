@@ -1,7 +1,12 @@
 """Async SEC EDGAR fetcher for 10-K and 10-Q filings.
 
-Uses the EDGAR full-text search API and data.sec.gov submission endpoints.
+Uses the official data.sec.gov submission endpoints.
 Idempotent: filing accession number is the primary key; skips already-stored filings.
+
+CIK resolution uses https://www.sec.gov/files/company_tickers.json — the
+official, stable bulk ticker→CIK mapping published by SEC. The file is cached
+on disk (data/cache/company_tickers.json) and in process memory so subsequent
+calls are free.
 """
 
 from __future__ import annotations
@@ -24,9 +29,39 @@ from finsight.errors import IngestionError
 logger = structlog.get_logger()
 
 EDGAR_SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
-EDGAR_FILING_URL = "https://www.sec.gov/Archives/edgar/{path}"
+# Correct archive pattern: no /full-index/ segment
+EDGAR_ARCHIVE_URL = "https://www.sec.gov/Archives/edgar/data/{cik_int}/{accession}/{doc}"
+_COMPANY_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
+_CACHE_PATH = Path("data/cache/company_tickers.json")
 _FORM_TYPES = {"10-K", "10-Q"}
 _MAX_10Q = 4
+
+# Process-level cache: {TICKER_UPPER: "0000320193"} (10-digit zero-padded CIK)
+_TICKER_MAP: dict[str, str] = {}
+
+
+def _build_ticker_map(raw: dict[str, Any]) -> dict[str, str]:
+    """Parse company_tickers.json into {TICKER: zero-padded-CIK}."""
+    return {
+        entry["ticker"].upper(): str(entry["cik_str"]).zfill(10)
+        for entry in raw.values()
+        if "ticker" in entry and "cik_str" in entry
+    }
+
+
+def _filing_url(cik_padded: str, accession: str, primary_doc: str) -> str:
+    """Build the correct SEC Archives URL for a filing document.
+
+    Pattern: /Archives/edgar/data/{cik_int}/{accession_no_dashes}/{doc}
+    No /full-index/ segment — that path is for index files, not documents.
+    """
+    cik_int = cik_padded.lstrip("0") or "0"
+    accession_no_dashes = accession.replace("-", "")
+    return EDGAR_ARCHIVE_URL.format(
+        cik_int=cik_int,
+        accession=accession_no_dashes,
+        doc=primary_doc,
+    )
 
 
 @dataclass
@@ -83,7 +118,6 @@ class SecEdgarFetcher:
                     continue
                 try:
                     filing = await self._fetch_and_parse(session, meta)
-                    self._save_raw(filing)
                     filings.append(filing)
                 except Exception as exc:
                     logger.warning(
@@ -94,36 +128,67 @@ class SecEdgarFetcher:
                     )
             return filings
 
-    async def _resolve_cik(self, session: aiohttp.ClientSession, ticker: str) -> str:
-        url = "https://www.sec.gov/cgi-bin/browse-edgar"
-        params = {
-            "company": "",
-            "CIK": ticker,
-            "type": "",
-            "action": "getcompany",
-            "output": "atom",
-        }
+    async def _load_ticker_map(self, session: aiohttp.ClientSession) -> dict[str, str]:
+        """Return the process-level ticker→CIK map, fetching it if needed.
+
+        Checks the on-disk cache first; falls back to a live SEC fetch.
+        Result is stored in the module-level _TICKER_MAP for the process lifetime.
+        """
+        global _TICKER_MAP  # noqa: PLW0603
+        if _TICKER_MAP:
+            return _TICKER_MAP
+
+        # Try disk cache first
+        if _CACHE_PATH.exists():
+            try:
+                raw = json.loads(_CACHE_PATH.read_text())
+                _TICKER_MAP = _build_ticker_map(raw)
+                logger.info(
+                    "edgar.ticker_map_loaded_from_cache",
+                    path=str(_CACHE_PATH),
+                    count=len(_TICKER_MAP),
+                )
+                return _TICKER_MAP
+            except Exception as exc:
+                logger.warning("edgar.ticker_cache_corrupt", error=str(exc))
+
+        # Fetch from SEC
         async with self._semaphore:
             async for attempt in AsyncRetrying(
                 retry=retry_if_exception_type(Exception),
-                stop=stop_after_attempt(3),
-                wait=wait_exponential(min=1, max=5),
+                stop=stop_after_attempt(2),
+                wait=wait_exponential(min=2, max=8),
                 reraise=True,
             ):
                 with attempt:
                     async with session.get(
-                        url, params=params, timeout=aiohttp.ClientTimeout(total=30)
+                        _COMPANY_TICKERS_URL,
+                        headers={"User-Agent": self._user_agent},
+                        timeout=aiohttp.ClientTimeout(total=30),
                     ) as resp:
                         if resp.status != 200:
-                            raise IngestionError(f"EDGAR CIK lookup failed: {resp.status}")
-                        text = await resp.text()
-                        match = re.search(r"CIK=(\d+)", text)
-                        if not match:
-                            raise IngestionError(f"CIK not found for ticker {ticker}")
-                        cik = match.group(1).zfill(10)
-                        logger.debug("edgar.cik_resolved", ticker=ticker, cik=cik)
-                        return cik
-        raise IngestionError(f"Failed to resolve CIK for {ticker}")
+                            raise IngestionError(
+                                f"company_tickers.json fetch failed: {resp.status}"
+                            )
+                        raw = await resp.json(content_type=None)
+
+        _TICKER_MAP = _build_ticker_map(raw)
+        _CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _CACHE_PATH.write_text(json.dumps(raw))
+        logger.info(
+            "edgar.ticker_map_loaded",
+            source=_COMPANY_TICKERS_URL,
+            count=len(_TICKER_MAP),
+        )
+        return _TICKER_MAP
+
+    async def _resolve_cik(self, session: aiohttp.ClientSession, ticker: str) -> str:
+        ticker_map = await self._load_ticker_map(session)
+        cik = ticker_map.get(ticker.upper())
+        if not cik:
+            raise IngestionError(f"Ticker '{ticker}' not found in SEC company_tickers.json")
+        logger.debug("edgar.cik_resolved", ticker=ticker, cik=cik)
+        return cik
 
     async def _get_submissions(self, session: aiohttp.ClientSession, cik: str) -> dict[str, Any]:
         url = EDGAR_SUBMISSIONS_URL.format(cik=cik)
@@ -131,8 +196,8 @@ class SecEdgarFetcher:
         async with self._semaphore:
             async for attempt in AsyncRetrying(
                 retry=retry_if_exception_type(Exception),
-                stop=stop_after_attempt(3),
-                wait=wait_exponential(min=1, max=5),
+                stop=stop_after_attempt(2),
+                wait=wait_exponential(min=2, max=8),
                 reraise=True,
             ):
                 with attempt:
@@ -172,30 +237,6 @@ class SecEdgarFetcher:
                     continue
                 ten_q_count += 1
 
-            # Stop once we have collected everything we need
-            if ten_k_found and ten_q_count >= _MAX_10Q:
-                accession_path = accession.replace("-", "")
-                doc_url = (
-                    f"https://www.sec.gov/Archives/edgar/full-index/"
-                    f"data/{cik.lstrip('0')}/{accession_path}/{doc}"
-                )
-                metas.append(
-                    Filing(
-                        ticker=ticker,
-                        cik=cik,
-                        accession_number=accession,
-                        form_type=form,
-                        filing_date=date,
-                        document_url=doc_url,
-                    )
-                )
-                break
-
-            accession_path = accession.replace("-", "")
-            doc_url = (
-                f"https://www.sec.gov/Archives/edgar/full-index/"
-                f"data/{cik.lstrip('0')}/{accession_path}/{doc}"
-            )
             metas.append(
                 Filing(
                     ticker=ticker,
@@ -203,9 +244,12 @@ class SecEdgarFetcher:
                     accession_number=accession,
                     form_type=form,
                     filing_date=date,
-                    document_url=doc_url,
+                    document_url=_filing_url(cik, accession, doc),
                 )
             )
+
+            if ten_k_found and ten_q_count >= _MAX_10Q:
+                break
 
         return metas
 
@@ -214,18 +258,21 @@ class SecEdgarFetcher:
             "User-Agent": self._user_agent,
             "Host": "www.sec.gov",
         }
-        async with (
-            self._semaphore,
-            session.get(
+        # Hold the semaphore slot for ≥0.5 s after the response completes.
+        # With semaphore=5 this caps throughput at 5/0.5 = 10 req/s globally.
+        async with self._semaphore:
+            async with session.get(
                 filing.document_url,
                 headers=headers,
                 timeout=aiohttp.ClientTimeout(total=60),
-            ) as resp,
-        ):
-            if resp.status != 200:
-                raise IngestionError(f"Filing fetch failed: {resp.status} {filing.document_url}")
-            content_type = resp.headers.get("Content-Type", "")
-            raw = await resp.text(errors="replace")
+            ) as resp:
+                if resp.status != 200:
+                    raise IngestionError(
+                        f"Filing fetch failed: {resp.status} {filing.document_url}"
+                    )
+                content_type = resp.headers.get("Content-Type", "")
+                raw = await resp.text(errors="replace")
+            await asyncio.sleep(0.5)  # rate-limit: ≤10 req/s across 5 slots
 
         if "html" in content_type.lower() or raw.strip().startswith("<"):
             filing.raw_text = self._parse_html(raw)
@@ -284,7 +331,8 @@ class SecEdgarFetcher:
         path = self._raw_dir / f"{accession_number.replace('-', '_')}.json"
         return path.exists()
 
-    def _save_raw(self, filing: Filing) -> None:
+    def mark_ingested(self, filing: Filing) -> None:
+        """Write the marker file ONLY after full ingest (chunk→embed→upsert) succeeds."""
         filename = f"{filing.accession_number.replace('-', '_')}.json"
         path = self._raw_dir / filename
         data = {
@@ -298,4 +346,4 @@ class SecEdgarFetcher:
             "sections": filing.sections,
         }
         path.write_text(json.dumps(data, indent=2))
-        logger.debug("edgar.raw_saved", path=str(path))
+        logger.debug("edgar.marked_ingested", path=str(path))
