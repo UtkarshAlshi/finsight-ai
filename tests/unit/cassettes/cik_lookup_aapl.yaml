@@ -1,0 +1,23 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      User-Agent:
+      - FinSightAI contact@example.com
+    method: GET
+    uri: https://www.sec.gov/cgi-bin/browse-edgar?CIK=AAPL&action=getcompany&company=&output=atom&type=
+  response:
+    body:
+      string: '<feed xmlns="http://www.w3.org/2005/Atom"><entry><content type="text/xml"><company-info><cik>0000320193</cik><name>Apple
+        Inc.</name></company-info></content></entry></feed>'
+    headers:
+      Content-Type:
+      - application/atom+xml
+    status:
+      code: 200
+      message: OK
+version: 1
