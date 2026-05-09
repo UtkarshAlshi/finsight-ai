@@ -101,3 +101,6 @@ langfuse.db
 # Logs
 *.log
 logs/
+
+# Eval results (generated at runtime)
+src/finsight/eval/results/

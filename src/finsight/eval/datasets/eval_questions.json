@@ -1,0 +1,352 @@
+[
+  {
+    "id": "q001",
+    "question": "What was Apple's total revenue in fiscal year 2024?",
+    "ground_truth": "Apple reported total net sales of $391.0 billion in fiscal year 2024.",
+    "tickers": ["AAPL"],
+    "category": "revenue"
+  },
+  {
+    "id": "q002",
+    "question": "How did Microsoft's cloud revenue grow in fiscal year 2024?",
+    "ground_truth": "Microsoft's Intelligent Cloud segment revenue grew to $105.4 billion in fiscal year 2024, up from $87.9 billion in fiscal year 2023.",
+    "tickers": ["MSFT"],
+    "category": "revenue"
+  },
+  {
+    "id": "q003",
+    "question": "What is NVIDIA's gross margin for fiscal year 2024?",
+    "ground_truth": "NVIDIA reported a gross margin of approximately 72.7% for fiscal year 2024.",
+    "tickers": ["NVDA"],
+    "category": "margins"
+  },
+  {
+    "id": "q004",
+    "question": "What was Meta's operating income in 2023?",
+    "ground_truth": "Meta reported operating income of $46.8 billion in 2023, a significant recovery from 2022.",
+    "tickers": ["META"],
+    "category": "profitability"
+  },
+  {
+    "id": "q005",
+    "question": "How did Google's advertising revenue perform in 2023?",
+    "ground_truth": "Alphabet's Google advertising revenue reached $237.9 billion in 2023, up from $224.5 billion in 2022.",
+    "tickers": ["GOOGL"],
+    "category": "revenue"
+  },
+  {
+    "id": "q006",
+    "question": "What was Amazon's AWS revenue in 2023?",
+    "ground_truth": "Amazon Web Services generated $90.8 billion in revenue in 2023, growing 13% year-over-year.",
+    "tickers": ["AMZN"],
+    "category": "segment_revenue"
+  },
+  {
+    "id": "q007",
+    "question": "What is Apple's debt-to-equity ratio?",
+    "ground_truth": "Apple has a negative shareholders' equity due to significant share buybacks, making traditional debt-to-equity calculations complex. Total debt was approximately $108 billion in fiscal year 2024.",
+    "tickers": ["AAPL"],
+    "category": "ratios"
+  },
+  {
+    "id": "q008",
+    "question": "What was Tesla's vehicle delivery count in 2023?",
+    "ground_truth": "Tesla delivered approximately 1.81 million vehicles in 2023, a 38% increase from 2022.",
+    "tickers": ["TSLA"],
+    "category": "operational"
+  },
+  {
+    "id": "q009",
+    "question": "How did NVIDIA's data center revenue grow in fiscal year 2024?",
+    "ground_truth": "NVIDIA's Data Center segment revenue grew to $47.5 billion in fiscal year 2024, up 217% from the prior year, driven by AI accelerator demand.",
+    "tickers": ["NVDA"],
+    "category": "segment_revenue"
+  },
+  {
+    "id": "q010",
+    "question": "What was JPMorgan Chase's net income in 2023?",
+    "ground_truth": "JPMorgan Chase reported record net income of $49.6 billion in 2023.",
+    "tickers": ["JPM"],
+    "category": "profitability"
+  },
+  {
+    "id": "q011",
+    "question": "What is Microsoft's price-to-earnings ratio?",
+    "ground_truth": "Microsoft's P/E ratio varies by market conditions; as of late 2023, it traded at approximately 35-40x trailing earnings.",
+    "tickers": ["MSFT"],
+    "category": "ratios"
+  },
+  {
+    "id": "q012",
+    "question": "How did Meta's capital expenditures change in 2023?",
+    "ground_truth": "Meta's capital expenditures decreased to $28.1 billion in 2023 from $32.0 billion in 2022, reflecting the 'Year of Efficiency' cost-cutting measures.",
+    "tickers": ["META"],
+    "category": "cash_flow"
+  },
+  {
+    "id": "q013",
+    "question": "What was Amazon's operating margin in 2023?",
+    "ground_truth": "Amazon's consolidated operating margin improved to approximately 6.4% in 2023 from 2.0% in 2022.",
+    "tickers": ["AMZN"],
+    "category": "margins"
+  },
+  {
+    "id": "q014",
+    "question": "How much did Apple spend on share repurchases in fiscal year 2024?",
+    "ground_truth": "Apple spent approximately $95 billion on share repurchases in fiscal year 2024.",
+    "tickers": ["AAPL"],
+    "category": "capital_allocation"
+  },
+  {
+    "id": "q015",
+    "question": "What was Alphabet's total headcount change in 2023?",
+    "ground_truth": "Alphabet reduced its headcount by approximately 12,000 employees through layoffs announced in early 2023 as part of cost optimization.",
+    "tickers": ["GOOGL"],
+    "category": "operational"
+  },
+  {
+    "id": "q016",
+    "question": "What was Tesla's gross margin in 2023?",
+    "ground_truth": "Tesla's automotive gross margin declined to approximately 17.7% in 2023 from 25.6% in 2022, pressured by price cuts.",
+    "tickers": ["TSLA"],
+    "category": "margins"
+  },
+  {
+    "id": "q017",
+    "question": "How did NVIDIA's gaming revenue trend in fiscal year 2024?",
+    "ground_truth": "NVIDIA's Gaming segment revenue recovered to $10.4 billion in fiscal year 2024 after declining in fiscal year 2023.",
+    "tickers": ["NVDA"],
+    "category": "segment_revenue"
+  },
+  {
+    "id": "q018",
+    "question": "What are Microsoft's key risk factors mentioned in its 10-K?",
+    "ground_truth": "Microsoft's key risk factors include competition, cybersecurity threats, AI regulation, cloud infrastructure reliability, and geopolitical risks affecting international operations.",
+    "tickers": ["MSFT"],
+    "category": "risk"
+  },
+  {
+    "id": "q019",
+    "question": "What was Walmart's e-commerce growth rate in fiscal year 2024?",
+    "ground_truth": "Walmart's global e-commerce sales grew approximately 21% in fiscal year 2024.",
+    "tickers": ["WMT"],
+    "category": "revenue"
+  },
+  {
+    "id": "q020",
+    "question": "How did Amazon's free cash flow change in 2023?",
+    "ground_truth": "Amazon's free cash flow improved significantly to $35.5 billion in 2023, recovering from negative free cash flow of $19.7 billion in 2022.",
+    "tickers": ["AMZN"],
+    "category": "cash_flow"
+  },
+  {
+    "id": "q021",
+    "question": "What was Meta's revenue per user (ARPU) in 2023?",
+    "ground_truth": "Meta's worldwide average revenue per person (ARPP) was approximately $44.57 in 2023.",
+    "tickers": ["META"],
+    "category": "operational"
+  },
+  {
+    "id": "q022",
+    "question": "What is Apple's current ratio as of fiscal year 2024?",
+    "ground_truth": "Apple's current ratio was approximately 0.87 as of September 2024, below 1.0 due to large short-term borrowings offset by substantial cash.",
+    "tickers": ["AAPL"],
+    "category": "ratios"
+  },
+  {
+    "id": "q023",
+    "question": "How did NVIDIA's R&D spending change in fiscal year 2024?",
+    "ground_truth": "NVIDIA's research and development expenses grew to $8.7 billion in fiscal year 2024, up from $7.3 billion in fiscal year 2023.",
+    "tickers": ["NVDA"],
+    "category": "expenses"
+  },
+  {
+    "id": "q024",
+    "question": "What was JPMorgan's return on equity in 2023?",
+    "ground_truth": "JPMorgan Chase reported a return on tangible common equity (ROTCE) of approximately 21% in 2023.",
+    "tickers": ["JPM"],
+    "category": "ratios"
+  },
+  {
+    "id": "q025",
+    "question": "What are Google's main business segments?",
+    "ground_truth": "Alphabet's main segments are Google Services (Search, YouTube, ads, Android, Chrome, Maps, Google Play), Google Cloud, and Other Bets.",
+    "tickers": ["GOOGL"],
+    "category": "business"
+  },
+  {
+    "id": "q026",
+    "question": "How did Tesla's energy generation and storage revenue grow in 2023?",
+    "ground_truth": "Tesla's Energy Generation and Storage segment revenue grew to $6.0 billion in 2023, up 54% from $3.9 billion in 2022.",
+    "tickers": ["TSLA"],
+    "category": "segment_revenue"
+  },
+  {
+    "id": "q027",
+    "question": "What was Microsoft's Azure revenue growth rate in fiscal year 2024?",
+    "ground_truth": "Microsoft Azure and other cloud services grew approximately 29% in constant currency in fiscal year 2024.",
+    "tickers": ["MSFT"],
+    "category": "segment_revenue"
+  },
+  {
+    "id": "q028",
+    "question": "What was Walmart's operating income in fiscal year 2024?",
+    "ground_truth": "Walmart's operating income grew to approximately $27.0 billion in fiscal year 2024.",
+    "tickers": ["WMT"],
+    "category": "profitability"
+  },
+  {
+    "id": "q029",
+    "question": "How did Amazon's AWS operating margin change in 2023?",
+    "ground_truth": "AWS operating margin improved to approximately 26.3% in 2023 from 24.3% in 2022, reflecting operating leverage.",
+    "tickers": ["AMZN"],
+    "category": "margins"
+  },
+  {
+    "id": "q030",
+    "question": "What is Visa's revenue model and how does it generate income?",
+    "ground_truth": "Visa generates revenue primarily through service fees, data processing fees, international transaction fees, and other fees charged to financial institution clients for payment network access.",
+    "tickers": ["V"],
+    "category": "business"
+  },
+  {
+    "id": "q031",
+    "question": "What was Meta's daily active user count in Q4 2023?",
+    "ground_truth": "Meta's Family Daily Active People (DAP) reached 3.19 billion in Q4 2023, up 8% year-over-year.",
+    "tickers": ["META"],
+    "category": "operational"
+  },
+  {
+    "id": "q032",
+    "question": "How much cash did Apple have on its balance sheet in fiscal year 2024?",
+    "ground_truth": "Apple held approximately $153.6 billion in cash, cash equivalents, and marketable securities as of September 2024.",
+    "tickers": ["AAPL"],
+    "category": "balance_sheet"
+  },
+  {
+    "id": "q033",
+    "question": "What was NVIDIA's net income in fiscal year 2024?",
+    "ground_truth": "NVIDIA reported net income of $29.8 billion in fiscal year 2024, compared to $4.4 billion in fiscal year 2023.",
+    "tickers": ["NVDA"],
+    "category": "profitability"
+  },
+  {
+    "id": "q034",
+    "question": "How does Microsoft generate revenue from its gaming segment?",
+    "ground_truth": "Microsoft's gaming revenue comes from Xbox hardware sales, Xbox Game Pass subscriptions, first-party game titles, third-party game royalties, and Activision Blizzard following its acquisition.",
+    "tickers": ["MSFT"],
+    "category": "business"
+  },
+  {
+    "id": "q035",
+    "question": "What was Alphabet's YouTube advertising revenue in 2023?",
+    "ground_truth": "YouTube advertising revenue reached $31.5 billion in 2023, up from $29.2 billion in 2022.",
+    "tickers": ["GOOGL"],
+    "category": "segment_revenue"
+  },
+  {
+    "id": "q036",
+    "question": "What is Tesla's supercharger network strategy?",
+    "ground_truth": "Tesla's Supercharger network has opened to third-party EVs and adopted the NACS connector standard, generating additional revenue while accelerating EV adoption.",
+    "tickers": ["TSLA"],
+    "category": "strategy"
+  },
+  {
+    "id": "q037",
+    "question": "How much did JPMorgan Chase set aside for credit loss provisions in 2023?",
+    "ground_truth": "JPMorgan Chase recorded provision for credit losses of $9.3 billion in 2023, reflecting loan growth and macroeconomic uncertainty.",
+    "tickers": ["JPM"],
+    "category": "risk"
+  },
+  {
+    "id": "q038",
+    "question": "What is Amazon's advertising revenue and how fast is it growing?",
+    "ground_truth": "Amazon's advertising services revenue grew 27% to $46.9 billion in 2023, making it one of the fastest-growing segments.",
+    "tickers": ["AMZN"],
+    "category": "segment_revenue"
+  },
+  {
+    "id": "q039",
+    "question": "What was Visa's total payment volume in fiscal year 2023?",
+    "ground_truth": "Visa's total payments volume was approximately $14.8 trillion in fiscal year 2023.",
+    "tickers": ["V"],
+    "category": "operational"
+  },
+  {
+    "id": "q040",
+    "question": "How did Meta's operating expenses change during the 'Year of Efficiency' in 2023?",
+    "ground_truth": "Meta reduced total expenses to $88.2 billion in 2023 from $87.7 billion in 2022 despite revenue growth, driven by headcount reduction of approximately 21,000 employees.",
+    "tickers": ["META"],
+    "category": "expenses"
+  },
+  {
+    "id": "q041",
+    "question": "What was Apple's iPhone revenue as a percentage of total revenue in fiscal year 2024?",
+    "ground_truth": "iPhone revenue was approximately $201.2 billion in fiscal year 2024, representing about 52% of Apple's total revenue.",
+    "tickers": ["AAPL"],
+    "category": "segment_revenue"
+  },
+  {
+    "id": "q042",
+    "question": "How did NVIDIA's supply chain constraints affect its business?",
+    "ground_truth": "NVIDIA faced significant supply constraints for its H100/A100 AI accelerators through 2023-2024, relying on TSMC for manufacturing, which led to customer prioritization and extended lead times.",
+    "tickers": ["NVDA"],
+    "category": "risk"
+  },
+  {
+    "id": "q043",
+    "question": "What was Microsoft's total revenue in fiscal year 2024?",
+    "ground_truth": "Microsoft reported total revenue of $245.1 billion in fiscal year 2024, up 16% from $211.9 billion in fiscal year 2023.",
+    "tickers": ["MSFT"],
+    "category": "revenue"
+  },
+  {
+    "id": "q044",
+    "question": "What regulatory risks does Google face in its advertising business?",
+    "ground_truth": "Google faces antitrust scrutiny in both the US and EU related to search advertising dominance, with the DOJ lawsuit ruling in 2024 finding Google an illegal monopolist in search.",
+    "tickers": ["GOOGL"],
+    "category": "risk"
+  },
+  {
+    "id": "q045",
+    "question": "How did Walmart's Sam's Club segment perform in fiscal year 2024?",
+    "ground_truth": "Sam's Club US net sales grew approximately 3.5% in fiscal year 2024, with membership income up about 10%.",
+    "tickers": ["WMT"],
+    "category": "segment_revenue"
+  },
+  {
+    "id": "q046",
+    "question": "What is Amazon's fulfillment cost structure?",
+    "ground_truth": "Amazon's fulfillment costs include warehousing, shipping, and last-mile delivery. Fulfillment expenses were $90.6 billion in 2023, representing a major cost driver alongside technology and content.",
+    "tickers": ["AMZN"],
+    "category": "expenses"
+  },
+  {
+    "id": "q047",
+    "question": "What was Tesla's free cash flow in 2023?",
+    "ground_truth": "Tesla generated free cash flow of $4.4 billion in 2023, down from $7.6 billion in 2022, reflecting higher capital expenditures for factory expansion.",
+    "tickers": ["TSLA"],
+    "category": "cash_flow"
+  },
+  {
+    "id": "q048",
+    "question": "How does JPMorgan Chase's CET1 ratio compare to regulatory requirements?",
+    "ground_truth": "JPMorgan's CET1 ratio was approximately 15.0% as of December 2023, well above the regulatory minimum of 4.5% and its stress capital buffer requirement.",
+    "tickers": ["JPM"],
+    "category": "ratios"
+  },
+  {
+    "id": "q049",
+    "question": "What is Meta's AI investment strategy for 2024?",
+    "ground_truth": "Meta significantly increased AI investment in 2024, planning $35-40 billion in capital expenditures largely for AI infrastructure, including custom silicon (MTIA) and expanded data centers.",
+    "tickers": ["META"],
+    "category": "strategy"
+  },
+  {
+    "id": "q050",
+    "question": "How did Visa's cross-border transaction volume recover post-COVID?",
+    "ground_truth": "Visa's cross-border volume (excluding intra-Europe) fully recovered and exceeded pre-COVID levels, growing 16% in fiscal year 2023 as international travel continued normalizing.",
+    "tickers": ["V"],
+    "category": "operational"
+  }
+]

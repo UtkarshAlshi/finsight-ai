@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-05-09T06:45:39.963220+00:00",
+  "total": 2,
+  "answered": 2,
+  "avg_faithfulness": 0.9,
+  "avg_answer_relevancy": 0.85,
+  "results": [
+    {
+      "id": "q001",
+      "question": "What was Apple's total revenue in fiscal year 2024?",
+      "answer": "Apple revenue was $391B.",
+      "ground_truth": "Apple reported total net sales of $391.0 billion in fiscal year 2024.",
+      "contexts_count": 1,
+      "latency_seconds": 0.0,
+      "faithfulness": 0.9,
+      "answer_relevancy": 0.85
+    },
+    {
+      "id": "q002",
+      "question": "How did Microsoft's cloud revenue grow in fiscal year 2024?",
+      "answer": "Apple revenue was $391B.",
+      "ground_truth": "Microsoft's Intelligent Cloud segment revenue grew to $105.4 billion in fiscal year 2024, up from $87.9 billion in fiscal year 2023.",
+      "contexts_count": 1,
+      "latency_seconds": 0.0,
+      "faithfulness": 0.9,
+      "answer_relevancy": 0.85
+    }
+  ]
+}
