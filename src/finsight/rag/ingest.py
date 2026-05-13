@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import os
+from functools import lru_cache
+
 import numpy as np
 import structlog
+import torch
 from qdrant_client.models import PointStruct
 from sentence_transformers import SentenceTransformer
 
@@ -16,12 +20,25 @@ logger = structlog.get_logger()
 
 _BATCH_SIZE = 32
 
+# Prevent SentenceTransformer from phoning home for model-update checks.
+# The model is already cached locally; remote calls only add latency and
+# block the event loop if the CDN is unreachable.
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
 
 class EmbeddingService:
     """Wraps SentenceTransformer for batch embedding with normalisation."""
 
     def __init__(self, model_name: str) -> None:
-        self._model = SentenceTransformer(model_name)
+        if torch.backends.mps.is_available():
+            device = "mps"
+        elif torch.cuda.is_available():
+            device = "cuda"
+        else:
+            device = "cpu"
+        logger.info("embedding.device_selected", device=device)
+        self._model = SentenceTransformer(model_name, device=device)
 
     def embed_batch(self, texts: list[str]) -> list[list[float]]:
         vecs = self._model.encode(texts, normalize_embeddings=True, show_progress_bar=False)
@@ -32,12 +49,19 @@ class EmbeddingService:
         return list(np.array(vec).tolist())
 
 
+@lru_cache(maxsize=4)
+def _get_embedding_service(model_name: str) -> EmbeddingService:
+    """Return a cached EmbeddingService — one instance per model name per process."""
+    logger.info("ingest.embedding_model_load", model=model_name)
+    return EmbeddingService(model_name)
+
+
 async def ingest_documents(filings: list[Filing], settings: Settings) -> None:
     """Full pipeline: chunk → embed → upsert for a list of Filing objects."""
     if not filings:
         return
 
-    embedding_svc = EmbeddingService(settings.embedding_model)
+    embedding_svc = _get_embedding_service(settings.embedding_model)
     qdrant = QdrantStore(settings)
     pg = PostgresStore(settings)
 

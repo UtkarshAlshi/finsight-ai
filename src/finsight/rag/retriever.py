@@ -13,6 +13,7 @@ import time
 from typing import Any
 
 import structlog
+import torch
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from finsight.config import Settings
@@ -30,8 +31,15 @@ class HybridRetriever:
     def __init__(self, settings: Settings) -> None:
         self._pg = PostgresStore(settings)
         self._qdrant = QdrantStore(settings)
-        self._embedder = SentenceTransformer(settings.embedding_model)
-        self._reranker = CrossEncoder(settings.reranker_model)
+        if torch.backends.mps.is_available():
+            device = "mps"
+        elif torch.cuda.is_available():
+            device = "cuda"
+        else:
+            device = "cpu"
+        logger.info("embedding.device_selected", device=device)
+        self._embedder = SentenceTransformer(settings.embedding_model, device=device)
+        self._reranker = CrossEncoder(settings.reranker_model, device=device)
         self._retrieval_k = settings.retrieval_top_k
         self._rerank_k = settings.rerank_top_k
 

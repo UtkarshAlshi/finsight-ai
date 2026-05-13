@@ -9,6 +9,7 @@ from typing import Any
 
 import numpy as np
 import structlog
+import torch
 from redis.asyncio import Redis
 from sentence_transformers import SentenceTransformer
 
@@ -39,7 +40,14 @@ class SemanticCache:
         max_index_size: int = 1000,
     ) -> None:
         self._redis = redis
-        self._model = SentenceTransformer(model_name)
+        if torch.backends.mps.is_available():
+            device = "mps"
+        elif torch.cuda.is_available():
+            device = "cuda"
+        else:
+            device = "cpu"
+        logger.info("embedding.device_selected", device=device)
+        self._model = SentenceTransformer(model_name, device=device)
         self._threshold = threshold
         self._ttl = ttl_seconds
         self._max_index = max_index_size
