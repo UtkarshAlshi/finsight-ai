@@ -15,6 +15,7 @@ from finsight.api.routes import admin, health, query
 from finsight.config import get_settings
 from finsight.obs.logging import configure_logging
 from finsight.obs.tracing import setup_tracing
+from finsight.rag.retriever import warm_models
 
 logger = structlog.get_logger()
 
@@ -32,6 +33,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         use_console=not settings.is_production,
     )
     logger.info("app.started", env=settings.app_env)
+    warm_models(settings)  # load embedding + reranker once; subsequent requests pay no load cost
     yield
     logger.info("app.stopped")
 

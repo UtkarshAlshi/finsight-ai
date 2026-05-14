@@ -38,16 +38,20 @@ class SemanticCache:
         threshold: float = 0.92,
         ttl_seconds: int = 3600,
         max_index_size: int = 1000,
+        embedder: SentenceTransformer | None = None,
     ) -> None:
         self._redis = redis
-        if torch.backends.mps.is_available():
-            device = "mps"
-        elif torch.cuda.is_available():
-            device = "cuda"
+        if embedder is not None:
+            self._model = embedder
         else:
-            device = "cpu"
-        logger.info("embedding.device_selected", device=device)
-        self._model = SentenceTransformer(model_name, device=device)
+            if torch.backends.mps.is_available():
+                device = "mps"
+            elif torch.cuda.is_available():
+                device = "cuda"
+            else:
+                device = "cpu"
+            logger.info("embedding.device_selected", device=device)
+            self._model = SentenceTransformer(model_name, device=device)
         self._threshold = threshold
         self._ttl = ttl_seconds
         self._max_index = max_index_size

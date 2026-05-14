@@ -24,6 +24,40 @@ logger = structlog.get_logger()
 
 _RRF_K = 60  # standard RRF constant
 
+# Module-level singletons — loaded once at startup via warm_models(), never per-request.
+_embedder: SentenceTransformer | None = None
+_reranker: CrossEncoder | None = None
+
+
+def _select_device() -> str:
+    if torch.backends.mps.is_available():
+        return "mps"
+    if torch.cuda.is_available():
+        return "cuda"
+    return "cpu"
+
+
+def warm_models(settings: Settings) -> None:
+    """Load embedding and reranker models into module singletons; no-op if already loaded.
+
+    Called explicitly at API startup (lifespan) so the cold-load cost is paid
+    once before any request is served. HybridRetriever.__init__ also calls this
+    as a safety net, making it safe to instantiate the retriever in tests without
+    going through the lifespan.
+    """
+    global _embedder, _reranker  # noqa: PLW0603
+    if _embedder is not None:
+        return
+    device = _select_device()
+    logger.info("models.loading", device=device, embedding_model=settings.embedding_model)
+    _embedder = SentenceTransformer(settings.embedding_model, device=device)
+    _reranker = CrossEncoder(settings.reranker_model, device=device)
+    logger.info(
+        "models.loaded",
+        embedding_model=settings.embedding_model,
+        reranker_model=settings.reranker_model,
+    )
+
 
 class HybridRetriever:
     """Combines BM25 + dense retrieval with RRF fusion and cross-encoder reranking."""
@@ -31,15 +65,12 @@ class HybridRetriever:
     def __init__(self, settings: Settings) -> None:
         self._pg = PostgresStore(settings)
         self._qdrant = QdrantStore(settings)
-        if torch.backends.mps.is_available():
-            device = "mps"
-        elif torch.cuda.is_available():
-            device = "cuda"
-        else:
-            device = "cpu"
-        logger.info("embedding.device_selected", device=device)
-        self._embedder = SentenceTransformer(settings.embedding_model, device=device)
-        self._reranker = CrossEncoder(settings.reranker_model, device=device)
+        # warm_models is a no-op when called at startup; this fallback handles
+        # direct instantiation in tests and scripts.
+        warm_models(settings)
+        assert _embedder is not None and _reranker is not None
+        self._embedder = _embedder
+        self._reranker = _reranker
         self._retrieval_k = settings.retrieval_top_k
         self._rerank_k = settings.rerank_top_k
 
