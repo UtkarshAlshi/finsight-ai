@@ -39,10 +39,39 @@ def _should_loop(state: GraphState) -> str:
     return "synthesise"
 
 
+_FORECAST_KEYWORDS = {"forecast", "predict", "projection", "outlook", "guidance", "estimate"}
+_SENTIMENT_KEYWORDS = {"sentiment", "news", "opinion", "analyst rating", "mood", "market reaction"}
+_FACTUAL_KEYWORDS = {
+    "revenue",
+    "earnings",
+    "eps",
+    "income",
+    "profit",
+    "loss",
+    "cash flow",
+    "balance sheet",
+    "10-q",
+    "10-k",
+    "filing",
+}
+
+
+def _classify_intent(question: str) -> str:
+    q = question.lower()
+    if any(kw in q for kw in _FORECAST_KEYWORDS):
+        return "forecast"
+    if any(kw in q for kw in _SENTIMENT_KEYWORDS):
+        return "sentiment"
+    if any(kw in q for kw in _FACTUAL_KEYWORDS):
+        return "factual"
+    return "analysis"
+
+
 async def _router_node(state: GraphState, settings: Settings) -> dict[str, Any]:
-    """Parse intent and set routing flags — currently enables all agents."""
-    logger.info("router.started", question_len=len(state.question))
-    return {}
+    """Classify query intent and store routing decision in state."""
+    intent = _classify_intent(state.question)
+    logger.info("router.classified", intent=intent, question_len=len(state.question))
+    return {"route": intent}
 
 
 async def _parallel_agents_node(state: GraphState, settings: Settings) -> dict[str, Any]:

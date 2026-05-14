@@ -29,6 +29,9 @@ class GraphState(BaseModel):
     validation_result: str = ""  # "pass" | "fail" | "pending"
     critic_iterations: int = 0
 
+    # Router
+    route: str = "all"  # intent bucket: factual | analysis | forecast | sentiment | all
+
     # Final
     final_answer: str = ""
 
