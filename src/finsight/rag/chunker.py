@@ -10,6 +10,7 @@ Strategy:
 from __future__ import annotations
 
 import hashlib
+import uuid
 from dataclasses import dataclass
 
 import structlog
@@ -144,4 +145,5 @@ def _sliding_window_chunks(
 
 def _make_chunk_id(accession_number: str, section: str, index: int) -> str:
     raw = f"{accession_number}:{section}:{index}"
-    return hashlib.sha256(raw.encode()).hexdigest()[:16]
+    digest = hashlib.sha256(raw.encode()).digest()[:16]
+    return str(uuid.UUID(bytes=digest))

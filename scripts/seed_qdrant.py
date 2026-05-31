@@ -87,9 +87,29 @@ async def _reset_stores(settings: object) -> None:  # type: ignore[type-arg]
 
     pg = PostgresStore(settings)
     async with AsyncSession(pg._engine) as session:
-        await session.execute(text("TRUNCATE document_chunks CASCADE"))
+        await session.execute(text("DROP TABLE IF EXISTS document_chunks CASCADE"))
+        await session.execute(
+            text(
+                """
+                CREATE TABLE document_chunks (
+                    chunk_id         TEXT PRIMARY KEY,
+                    text             TEXT NOT NULL,
+                    ticker           TEXT NOT NULL,
+                    form_type        TEXT NOT NULL,
+                    accession_number TEXT NOT NULL,
+                    filing_date      TEXT NOT NULL,
+                    section          TEXT,
+                    search_vector    tsvector
+                )
+                """
+            )
+        )
+        await session.execute(
+            text("CREATE INDEX idx_dc_search_vector ON document_chunks USING GIN (search_vector)")
+        )
+        await session.execute(text("CREATE INDEX idx_dc_ticker ON document_chunks (ticker)"))
         await session.commit()
-    logger.info("seed.reset.postgres_truncated")
+    logger.info("seed.reset.postgres_recreated")
 
 
 async def _seed(tickers: list[str], dry_run: bool, reset: bool) -> None:

@@ -100,7 +100,6 @@ class SecEdgarFetcher:
         return {
             "User-Agent": self._user_agent,
             "Accept-Encoding": "gzip, deflate",
-            "Host": "data.sec.gov",
         }
 
     async def fetch_latest_filings(self, ticker: str) -> list[Filing]:

@@ -104,3 +104,4 @@ logs/
 
 # Eval results (generated at runtime)
 src/finsight/eval/results/
+data/
