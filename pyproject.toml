@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "finsight-ai"
 version = "0.1.0"
-description = "Multi-agent financial intelligence platform"
+description = "Portfolio project: multi-agent financial document Q&A with hybrid RAG, LangGraph orchestration, and a full observability stack"
 requires-python = ">=3.11,<3.12"
 dependencies = [
     # API
