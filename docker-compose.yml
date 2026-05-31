@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: finsight
       POSTGRES_DB: finsight
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,7 +26,7 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:6333/healthz || exit 1"]
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/6333' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -78,31 +78,12 @@ services:
       retries: 5
       start_period: 30s
 
-  langfuse-server:
-    image: langfuse/langfuse:2
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: postgresql://finsight:finsight@postgres:5432/langfuse
-      NEXTAUTH_SECRET: langfuse-local-secret
-      SALT: langfuse-local-salt
-      NEXTAUTH_URL: http://localhost:3000
-      TELEMETRY_ENABLED: "false"
-      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: "true"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:3000/api/public/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-
   api:
     build:
       context: .
       dockerfile: deploy/docker/api.Dockerfile
+    command: ["uv", "run", "uvicorn", "src.finsight.api.main:app",
+              "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
     ports:
       - "8000:8000"
     env_file:
@@ -112,7 +93,6 @@ services:
       QDRANT_URL: http://qdrant:6333
       REDIS_URL: redis://redis:6379/0
       KAFKA_BROKERS: redpanda:9092
-      LANGFUSE_HOST: http://langfuse-server:3000
     depends_on:
       postgres:
         condition: service_healthy
