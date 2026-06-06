@@ -108,6 +108,11 @@ flowchart TD
     RP -.->|future: news stream| API
 ```
 
+## Static Diagram (Mobile Friendly)
+
+<img width="1622" height="877" alt="Screenshot 2026-06-06 at 4 51 20 PM" src="https://github.com/user-attachments/assets/98fdfb8e-d623-4314-ad75-f6fd1a281b47" />
+
+
 See [ARCHITECTURE.md](ARCHITECTURE.md) for component breakdown and sequence diagrams.
 
 ---
