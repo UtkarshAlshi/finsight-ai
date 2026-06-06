@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     # OpenAI is primary; Anthropic is optional fallback.
     anthropic_api_key: SecretStr | None = None
     openai_api_key: SecretStr = Field(default=SecretStr(""))
+    groq_api_key: SecretStr | None = None
     llm_cheap_model: str = "gpt-4o-mini"
     llm_premium_model: str = "gpt-4o"
     llm_anthropic_cheap_model: str = "claude-haiku-4-5-20251001"
@@ -78,6 +79,13 @@ class Settings(BaseSettings):
     @classmethod
     def _empty_str_to_none(cls, v: object) -> object:
         """Treat an empty or whitespace-only ANTHROPIC_API_KEY as absent (None)."""
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
+
+    @field_validator("groq_api_key", mode="before")
+    @classmethod
+    def _empty_groq_to_none(cls, v: object) -> object:
         if isinstance(v, str) and not v.strip():
             return None
         return v

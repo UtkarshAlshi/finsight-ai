@@ -11,7 +11,7 @@ import enum
 import structlog
 
 from finsight.config import Settings
-from finsight.llm.client import AnthropicClient, LLMClient, OpenAIClient
+from finsight.llm.client import AnthropicClient, GroqClient, LLMClient, OpenAIClient
 from finsight.obs.metrics import llm_requests_total
 
 logger = structlog.get_logger()
@@ -37,16 +37,26 @@ class LLMRouter:
     """
 
     def __init__(self, settings: Settings) -> None:
-        openai_key = settings.openai_api_key.get_secret_value()
-
-        self._cheap: _AnyClient = OpenAIClient(
-            api_key=openai_key,
-            model=settings.llm_cheap_model,
-        )
-        self._premium: _AnyClient = OpenAIClient(
-            api_key=openai_key,
-            model=settings.llm_premium_model,
-        )
+        if settings.groq_api_key is not None:
+            groq_key = settings.groq_api_key.get_secret_value()
+            self._cheap: _AnyClient = GroqClient(
+                api_key=groq_key,
+                model=settings.llm_cheap_model,
+            )
+            self._premium: _AnyClient = GroqClient(
+                api_key=groq_key,
+                model=settings.llm_premium_model,
+            )
+        else:
+            openai_key = settings.openai_api_key.get_secret_value()
+            self._cheap = OpenAIClient(
+                api_key=openai_key,
+                model=settings.llm_cheap_model,
+            )
+            self._premium = OpenAIClient(
+                api_key=openai_key,
+                model=settings.llm_premium_model,
+            )
 
         # Anthropic clients — instantiated only when key is present
         self._anthropic_cheap: _AnyClient | None = None

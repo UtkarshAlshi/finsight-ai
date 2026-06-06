@@ -216,3 +216,16 @@ class OpenAIClient:
             input_cost + output_cost
         )
         llm_latency_seconds.labels(provider=self.provider, model=self.model).observe(latency)
+
+
+class GroqClient(OpenAIClient):
+    """Groq implementation — OpenAI-compatible API, different base URL."""
+
+    provider = "groq"
+
+    def __init__(self, api_key: str, model: str) -> None:
+        self.model = model
+        self._client = AsyncOpenAI(
+            api_key=api_key,
+            base_url="https://api.groq.com/openai/v1",
+        )
