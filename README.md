@@ -22,16 +22,28 @@ observable, evaluable system — not a polished product.
 - Observability: structured logging, OTel tracing, Prometheus metrics, cloud Langfuse
 
 ### Partial
-- Single-query demo works end-to-end for AAPL queries (~60 s on CPU inside Docker);
-  final LLM synthesis requires an OpenAI key with active billing credit
+- Single-query demo works end-to-end for AAPL/MSFT queries (~60 s on CPU inside Docker);
+  LLM synthesis confirmed working via Groq (free tier) or OpenAI
 - Analyst, sentiment, and forecasting agent nodes exist but are not exercised in the
   seed dataset — Phase 1 only validates the research + critic path
 
 ### Deferred
 - Full 10-ticker ingestion (blocked on CPU embedding throughput inside Docker)
-- End-to-end synthesis demo without billing credit dependency
 - Live evaluation run with published RAGAS scores
 - Web UI, rate-limit dashboard, cost metrics
+
+---
+
+## Demo
+
+Query: *"What were Apple's total net sales in fiscal year 2025?"*
+
+Apple's total net sales in fiscal year 2025 were $416,161M [AAPL:item_8_financial (2025-10-31)], representing 6% growth over fiscal 2024's $391,035M [AAPL:item_7_mda (2025-10-31)].
+
+Source: Apple Inc. 2025 Form 10-K, accession `0000320193-25-000079`
+
+(verifiable on SEC EDGAR). Full SSE stream with citations returned
+in ~45s on CPU inside Docker. See Quickstart to run locally.
 
 ---
 
@@ -40,7 +52,8 @@ observable, evaluable system — not a polished product.
 ```bash
 # 1. Configure environment
 cp .env.example .env
-# Edit .env — set OPENAI_API_KEY (required) and SEC_EDGAR_USER_AGENT
+# Edit .env — set either GROQ_API_KEY (free, recommended) or OPENAI_API_KEY,
+# plus SEC_EDGAR_USER_AGENT
 
 # 2. Start infrastructure
 make up
@@ -121,7 +134,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for component breakdown and sequence diag
 |---|---|---|
 | API | FastAPI 0.115, uvicorn (1 worker) | HTTP entrypoint, SSE streaming |
 | Agents | LangGraph 0.2 | Multi-agent orchestration |
-| Primary LLM | OpenAI gpt-4o-mini / gpt-4o | Cheap classification + premium synthesis |
+| Primary LLM | Groq llama-3.3-70b (free) / OpenAI gpt-4o | Tiered routing: cheap classification + premium synthesis |
 | Optional LLM | Anthropic claude-haiku / claude-sonnet | Fallback provider |
 | Embeddings | BAAI/bge-large-en-v1.5 (1024-dim) | Self-hosted dense retrieval |
 | Reranker | BAAI/bge-reranker-large | Cross-encoder reranking |
