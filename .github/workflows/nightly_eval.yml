@@ -1,9 +1,7 @@
 name: Nightly Evaluation
 
 on:
-  schedule:
-    # 02:00 UTC every day
-    - cron: "0 2 * * *"
+
   workflow_dispatch:
     inputs:
       max_questions:
